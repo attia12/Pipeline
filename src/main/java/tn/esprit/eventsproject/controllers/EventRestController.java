@@ -16,6 +16,7 @@ import java.util.List;
 public class EventRestController {
     private final IEventServices eventServices;
 
+
     @PostMapping("/addPart")
     public Participant addParticipant(@RequestBody Participant participant){
         return eventServices.addParticipant(participant);
