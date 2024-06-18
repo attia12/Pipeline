@@ -4,19 +4,22 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-
                 git branch: 'master', url: 'https://github.com/attia12/Pipeline.git'
+            }
+        }
+        stage('Set Permissions') {
+            steps {
+
+                sh 'chmod +x ./mvnw'
             }
         }
         stage('Compile') {
             steps {
-
                 sh './mvnw clean compile'
             }
         }
         stage('Test') {
             steps {
-
                 sh './mvnw test'
             }
         }
@@ -24,10 +27,7 @@ pipeline {
 
     post {
         always {
-
             junit 'target/surefire-reports/*.xml'
-
-
             cleanWs()
         }
     }
