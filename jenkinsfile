@@ -32,13 +32,13 @@ pipeline {
                 }
             }
         }
-    }
-        stage('Building images (mysql)') {
-            steps{
+        stage('Building images ( mysql)') {
+            steps {
                 script {
-                    sh('docker-compose build')
-                        }
+                    sh 'docker-compose build'
                 }
+            }
+        }
     }
 
     post {
