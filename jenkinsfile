@@ -9,7 +9,6 @@ pipeline {
         }
         stage('Set Permissions') {
             steps {
-
                 sh 'chmod +x ./mvnw'
             }
         }
@@ -21,6 +20,16 @@ pipeline {
         stage('Test') {
             steps {
                 sh './mvnw test'
+            }
+        }
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    def scannerHome = tool 'scanner'
+                    withSonarQubeEnv {
+                        sh "${scannerHome}/bin/sonar-scanner"
+                    }
+                }
             }
         }
     }
