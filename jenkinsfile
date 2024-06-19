@@ -7,33 +7,28 @@ pipeline {
                 git branch: 'master', url: 'https://github.com/attia12/Pipeline.git'
             }
         }
-
         stage('Set Permissions') {
             steps {
                 sh 'chmod +x ./mvnw'
             }
         }
-
         stage('Compile') {
             steps {
                 sh './mvnw clean compile'
             }
         }
-
         stage('Test') {
             steps {
                 sh './mvnw test'
             }
         }
-
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv(installationName: 'sonarqube') {
-                    sh 'mvn clean verify sonar:sonar \
-                        -Dsonar.projectKey=event \
-                        -Dsonar.projectName=event \
-                        -Dsonar.host.url=http://192.168.50.10:9000 \
-                        -Dsonar.login=squ_f424d1e5099f3e901ab12d3dc63f9c3925b12826'
+                script {
+                    def scannerHome = tool 'scanner'
+                    withSonarQubeEnv {
+                       sh "${scannerHome}/bin/sonar-scanner -X"
+                    }
                 }
             }
         }
