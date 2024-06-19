@@ -29,11 +29,11 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv(installationName: 'sonarqube') {
-                    sh '''mvn clean verify sonar:sonar \
+                    sh 'mvn clean verify sonar:sonar \
                         -Dsonar.projectKey=event \
                         -Dsonar.projectName=event \
                         -Dsonar.host.url=http://192.168.50.10:9000 \
-                        -Dsonar.login=squ_f424d1e5099f3e901ab12d3dc63f9c3925b12826'''
+                        -Dsonar.login=squ_f424d1e5099f3e901ab12d3dc63f9c3925b12826'
                 }
             }
         }
