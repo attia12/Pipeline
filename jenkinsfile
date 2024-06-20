@@ -7,6 +7,7 @@ pipeline {
         NEXUS_URL = "192.168.50.10:8081"
         NEXUS_REPOSITORY = "docker-repo"
         NEXUS_CREDENTIAL_ID = "nexus"
+        TIMESTAMP = new Date().format("yyyyMMdd.HHmmss")
     }
 
     stages {
@@ -74,7 +75,7 @@ pipeline {
                         protocol: NEXUS_PROTOCOL,
                         nexusUrl: NEXUS_URL,
                         groupId: 'tn.esprit',
-                        version: '1.0.0-SNAPSHOT',
+                        version: '1.0.0-${TIMESTAMP}',
                         repository: NEXUS_REPOSITORY,
                         credentialsId: NEXUS_CREDENTIAL_ID,
                         artifacts: [
