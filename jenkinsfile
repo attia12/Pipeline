@@ -2,8 +2,11 @@ pipeline {
     agent any
 
     environment {
-        registryCredentials = "nexus"
-        registry = "192.168.50.10:8083"
+        NEXUS_VERSION = "nexus3"
+        NEXUS_PROTOCOL = "http"
+        NEXUS_URL = "192.168.50.10:8081"
+        NEXUS_REPOSITORY = "docker-repo"
+        NEXUS_CREDENTIAL_ID = "nexus"
     }
 
     stages {
@@ -37,7 +40,7 @@ pipeline {
                 script {
                     def scannerHome = tool 'scanner'
                     withSonarQubeEnv {
-                        sh "${scannerHome}/bin/sonar-scanner -X"
+                       sh "${scannerHome}/bin/sonar-scanner -X"
                     }
                 }
             }
@@ -50,22 +53,29 @@ pipeline {
                 }
             }
         }
-        stage('Deploy to Nexus') {
+        stage("publish to nexus") {
             steps {
                 script {
-                    docker.withRegistry("http://${registry}", registryCredentials) {
-                        // Debug step to print environment variables
-                        sh "env"
+                    def artifactPath = "target/eventsProject-1.0.0-SNAPSHOT.jar"
 
-                        // Debug step to list Docker images
-                        sh "docker images"
+                    echo "*** File: ${artifactPath}, group: tn.esprit, packaging: jar, version 1.0.0-SNAPSHOT ***"
 
-                        // Debug step to try a dry-run push (if supported by your Docker version)
-                        sh "docker push --dry-run ${registry}/spring-app:5.0"
-
-                        // Actual Docker push
-                        sh "docker push ${registry}/spring-app:5.0"
-                    }
+                    nexusArtifactUploader(
+                        nexusVersion: NEXUS_VERSION,
+                        protocol: NEXUS_PROTOCOL,
+                        nexusUrl: NEXUS_URL,
+                        groupId: 'tn.esprit',
+                        version: '1.0.0-SNAPSHOT',
+                        repository: NEXUS_REPOSITORY,
+                        credentialsId: NEXUS_CREDENTIAL_ID,
+                        artifacts: [
+                            // Artifact generated such as .jar, .ear and .war files.
+                            [artifactId: 'eventsProject',
+                             classifier: '',
+                             file: artifactPath,
+                             type: 'jar']
+                        ]
+                    )
                 }
             }
         }
