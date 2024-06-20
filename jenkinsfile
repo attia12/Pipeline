@@ -95,6 +95,18 @@ pipeline {
                 }
             }
         }
+
+        stage('Run Application') {
+            steps {
+                script {
+                    // Define the command to run your application
+                    def runCommand = "java -jar ${artifactPath}"
+
+                    // Replace this with the actual command or script to start your application
+                    sh runCommand
+                }
+            }
+        }
     }
 
     post {
