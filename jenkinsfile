@@ -7,7 +7,6 @@ pipeline {
         NEXUS_URL = "192.168.50.10:8081"
         NEXUS_REPOSITORY = "docker-repo"
         NEXUS_CREDENTIAL_ID = "nexus"
-        TIMESTAMP = new Date().format("yyyyMMdd.HHmmss")
     }
 
     stages {
@@ -52,7 +51,7 @@ pipeline {
             }
         }
 
-        stage('Building images (mysql)') {
+        stage('Building Docker Image') {
             steps {
                 script {
                     sh 'docker-compose build'
@@ -60,31 +59,37 @@ pipeline {
             }
         }
 
-        stage("Publish to Nexus") {
+        stage('Publish to Nexus') {
             steps {
                 script {
-                    def artifactPath = "target/eventsProject-1.0.0-SNAPSHOT.jar"
-                    echo "*** File: ${artifactPath}, group: tn.esprit, packaging: jar, version 1.0.0-SNAPSHOT ***"
+                    def pom = readMavenPom file: "pom.xml"
+                    def filesByGlob = findFiles(glob: "target/*.${pom.packaging}")
 
-                    // Use ls command to verify the artifact is present before uploading
-                    sh "ls -la ${artifactPath}"
+                    if (filesByGlob.length == 0) {
+                        error "No artifacts found in target directory"
+                    }
 
-                    // Nexus Artifact Uploader
-                    nexusArtifactUploader(
-                        nexusVersion: NEXUS_VERSION,
-                        protocol: NEXUS_PROTOCOL,
-                        nexusUrl: NEXUS_URL,
-                        groupId: 'tn.esprit',
-                        version: '1.0.0-${TIMESTAMP}',
-                        repository: NEXUS_REPOSITORY,
-                        credentialsId: NEXUS_CREDENTIAL_ID,
-                        artifacts: [
-                            [artifactId: 'eventsProject',
-                             classifier: '',
-                             file: artifactPath,
-                             type: 'jar']
-                        ]
-                    )
+                    def artifactPath = filesByGlob[0].path
+                    def artifactExists = fileExists artifactPath
+
+                    if (artifactExists) {
+                        echo "*** File: ${artifactPath}, group: ${pom.groupId}, packaging: ${pom.packaging}, version ${pom.version}"
+
+                        nexusArtifactUploader(
+                            nexusVersion: NEXUS_VERSION,
+                            protocol: NEXUS_PROTOCOL,
+                            nexusUrl: NEXUS_URL,
+                            groupId: pom.groupId,
+                            version: pom.version,
+                            repository: NEXUS_REPOSITORY,
+                            credentialsId: NEXUS_CREDENTIAL_ID,
+                            artifacts: [
+                                [artifactId: pom.artifactId, classifier: '', file: artifactPath, type: pom.packaging]
+                            ]
+                        )
+                    } else {
+                        error "*** File: ${artifactPath}, could not be found"
+                    }
                 }
             }
         }
