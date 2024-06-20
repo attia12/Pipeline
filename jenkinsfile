@@ -4,7 +4,7 @@ pipeline {
     environment {
         NEXUS_VERSION = "nexus3"
         NEXUS_PROTOCOL = "http"
-        NEXUS_URL = "http://192.168.50.10:8081"
+        NEXUS_URL = "192.168.50.10:8081"
         NEXUS_REPOSITORY = "docker-repo"
         NEXUS_CREDENTIAL_ID = "nexus"
     }
@@ -63,7 +63,6 @@ pipeline {
             steps {
                 script {
                     def pom = readMavenPom file: "pom.xml"
-                    def version = pom.version.endsWith("-SNAPSHOT") ? "${pom.version}-SNAPSHOT" : pom.version
                     def filesByGlob = findFiles(glob: "target/*.${pom.packaging}")
 
                     if (filesByGlob.length == 0) {
@@ -76,14 +75,14 @@ pipeline {
                     sh "ls -l target/"
 
                     if (artifactExists) {
-                        echo "*** File: ${artifactPath}, group: ${pom.groupId}, packaging: ${pom.packaging}, version ${version}"
+                        echo "*** File: ${artifactPath}, group: ${pom.groupId}, packaging: ${pom.packaging}, version ${pom.version}"
 
                         nexusArtifactUploader(
                             nexusVersion: NEXUS_VERSION,
                             protocol: NEXUS_PROTOCOL,
                             nexusUrl: NEXUS_URL,
                             groupId: pom.groupId,
-                            version: version,
+                            version: pom.version,
                             repository: NEXUS_REPOSITORY,
                             credentialsId: NEXUS_CREDENTIAL_ID,
                             artifacts: [
