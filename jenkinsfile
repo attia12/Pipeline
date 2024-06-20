@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         registryCredentials = "nexus"
-        registry = "192.168.50.10:8081"
+        registry = "192.168.50.10:8083"
     }
 
     stages {
@@ -37,7 +37,7 @@ pipeline {
                 script {
                     def scannerHome = tool 'scanner'
                     withSonarQubeEnv {
-                       sh "${scannerHome}/bin/sonar-scanner -X"
+                        sh "${scannerHome}/bin/sonar-scanner -X"
                     }
                 }
             }
@@ -54,7 +54,16 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry("http://${registry}", registryCredentials) {
+                        // Debug step to print environment variables
+                        sh "env"
 
+                        // Debug step to list Docker images
+                        sh "docker images"
+
+                        // Debug step to try a dry-run push (if supported by your Docker version)
+                        sh "docker push --dry-run ${registry}/spring-app:5.0"
+
+                        // Actual Docker push
                         sh "docker push ${registry}/spring-app:5.0"
                     }
                 }
