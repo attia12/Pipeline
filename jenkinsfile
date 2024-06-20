@@ -7,6 +7,7 @@ pipeline {
         NEXUS_URL = "192.168.50.10:8081"
         NEXUS_REPOSITORY = "event-repo"
         NEXUS_CREDENTIAL_ID = "nexus"
+        ARTIFACT_NAME = "eventsProject"  // Update with your artifact name
     }
 
     stages {
@@ -89,6 +90,9 @@ pipeline {
                                 [artifactId: pom.artifactId, classifier: '', file: artifactPath, type: pom.packaging]
                             ]
                         )
+
+                        // Set the artifactPath for later stages
+                        env.ARTIFACT_PATH = artifactPath
                     } else {
                         error "*** File: ${artifactPath}, could not be found"
                     }
@@ -99,10 +103,7 @@ pipeline {
         stage('Run Application') {
             steps {
                 script {
-                    // Define the command to run your application
-                    def runCommand = "java -jar ${artifactPath}"
-
-                    // Replace this with the actual command or script to start your application
+                    def runCommand = "java -jar ${env.ARTIFACT_PATH}"
                     sh runCommand
                 }
             }
