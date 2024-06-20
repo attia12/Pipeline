@@ -15,21 +15,25 @@ pipeline {
                 git branch: 'master', url: 'https://github.com/attia12/Pipeline.git'
             }
         }
+
         stage('Set Permissions') {
             steps {
                 sh 'chmod +x ./mvnw'
             }
         }
+
         stage('Compile') {
             steps {
                 sh './mvnw clean compile'
             }
         }
+
         stage('Test') {
             steps {
                 sh './mvnw test'
             }
         }
+
         stage('Package') {
             steps {
                 sh './mvnw package'
@@ -41,11 +45,12 @@ pipeline {
                 script {
                     def scannerHome = tool 'scanner'
                     withSonarQubeEnv {
-                       sh "${scannerHome}/bin/sonar-scanner -X"
+                        sh "${scannerHome}/bin/sonar-scanner -X"
                     }
                 }
             }
         }
+
         stage('Building images (mysql)') {
             steps {
                 script {
@@ -53,6 +58,7 @@ pipeline {
                 }
             }
         }
+
         stage("Publish to Nexus") {
             steps {
                 script {
@@ -81,6 +87,7 @@ pipeline {
                 }
             }
         }
+    }
 
     post {
         always {
