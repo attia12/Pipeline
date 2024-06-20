@@ -35,15 +35,7 @@ pipeline {
                 sh './mvnw package'
             }
         }
-        stage('Verify Package') {
-            steps {
-                script {
-                    def artifactPath = "target/eventsProject-1.0.0-SNAPSHOT.jar"
-                    echo "Checking if artifact exists: ${artifactPath}"
-                    sh "ls -la ${artifactPath}"
-                }
-            }
-        }
+
         stage('SonarQube Analysis') {
             steps {
                 script {
@@ -70,6 +62,7 @@ pipeline {
                     // Use ls command to verify the artifact is present before uploading
                     sh "ls -la ${artifactPath}"
 
+                    // Nexus Artifact Uploader
                     nexusArtifactUploader(
                         nexusVersion: NEXUS_VERSION,
                         protocol: NEXUS_PROTOCOL,
