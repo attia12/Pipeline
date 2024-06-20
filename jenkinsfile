@@ -54,7 +54,7 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry("http://${registry}", registryCredentials) {
-                        sh "docker tag spring-app:latest ${registry}/spring-app:5.0"
+
                         sh "docker push ${registry}/spring-app:5.0"
                     }
                 }
