@@ -100,18 +100,7 @@ pipeline {
             }
         }
 
-        stage('Start Docker Containers') {
-            steps {
-                script {
-                    // Start Docker containers (MySQL and Spring Boot app)
-                    sh 'docker-compose up -d'
-                    // Give time for services to start (adjust sleep time as needed)
-                    sh 'sleep 30s'
-                    // Check logs for troubleshooting
-                    sh 'docker-compose logs spring-app'
-                }
-            }
-        }
+
 
         stage('Run Application') {
             steps {
