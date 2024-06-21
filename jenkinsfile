@@ -8,7 +8,6 @@ pipeline {
         NEXUS_REPOSITORY = "event-repo"
         NEXUS_CREDENTIAL_ID = "nexus"
         ARTIFACT_NAME = "eventsProject"
-        DOCKER_IMAGE_NAME = "eventsproject" // Docker image name
     }
 
     stages {
@@ -53,6 +52,14 @@ pipeline {
             }
         }
 
+        stage('Building Docker Image') {
+            steps {
+                script {
+                    sh 'docker-compose build'
+                }
+            }
+        }
+
         stage('Publish to Nexus') {
             steps {
                 script {
@@ -93,31 +100,14 @@ pipeline {
             }
         }
 
-        stage('Download Artifact from Nexus') {
+        stage('Run MySQL and Spring Boot Application') {
             steps {
                 script {
-                    def pom = readMavenPom file: "pom.xml"
-                    def artifactUrl = "${NEXUS_PROTOCOL}://${NEXUS_URL}/repository/${NEXUS_REPOSITORY}/${pom.groupId.replace('.', '/')}/${pom.artifactId}/${pom.version}/${pom.artifactId}-${pom.version}.${pom.packaging}"
-
-                    sh "curl -u ${NEXUS_CREDENTIAL_ID} -o target/${pom.artifactId}-${pom.version}.${pom.packaging} ${artifactUrl}"
-                }
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    sh """
-                        docker build -t ${DOCKER_IMAGE_NAME} .
-                    """
-                }
-            }
-        }
-
-        stage('Run Application') {
-            steps {
-                script {
+                    // Start Docker Compose services
                     sh 'docker-compose up -d'
+
+                    // Wait for the services to be fully up and running
+                    sh 'sleep 60'
                 }
             }
         }
@@ -127,6 +117,8 @@ pipeline {
         always {
             junit 'target/surefire-reports/*.xml'
             cleanWs()
+
+            // Clean up Docker containers
             script {
                 sh 'docker-compose down'
             }
