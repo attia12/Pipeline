@@ -5,13 +5,12 @@ services:
     image: mysql:5.7
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ""
-      MYSQL_DATABASE: eventsProject
+      - MYSQL_ROOT_PASSWORD= ""
+      - MYSQL_DATABASE=eventsProject
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-
   spring-app:
     depends_on:
       - mysqldb
@@ -23,10 +22,10 @@ services:
     environment:
       SPRING_APPLICATION_JSON: '{
         "spring.datasource.url": "jdbc:mysql://mysqldb:3306/eventsProject?useSSL=false",
-        "spring.datasource.username": "root",
-        "spring.datasource.password": "",
-        "spring.jpa.properties.hibernate.dialect": "org.hibernate.dialect.MySQL5InnoDBDialect",
-        "spring.jpa.hibernate.ddl-auto": "update"}'
+        "spring.datasource.username" : "root",
+        "spring.datasource.password" : "",
+        "spring.jpa.properties.hibernate.dialect" : "org.hibernate.dialect.MySQL5InnoDBDialect",
+        "spring.jpa.hibernate.ddl-auto" : "update"}'
     volumes:
       - .m2:/root/.m2
     stdin_open: true
