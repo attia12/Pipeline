@@ -106,8 +106,8 @@ pipeline {
             steps {
                 script {
 
-                    def runCommand = "java -jar ${env.ARTIFACT_PATH}"
-                    sh runCommand
+                    sh 'docker-compose up -d'
+
                 }
             }
         }
