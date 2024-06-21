@@ -100,14 +100,18 @@ pipeline {
             }
         }
 
-        stage('Run MySQL and Spring Boot Application') {
+        stage('Run Application') {
             steps {
                 script {
-                    // Start Docker Compose services
-                    sh 'docker-compose up -d'
+                    def pom = readMavenPom file: "pom.xml"
+                    def artifactCoordinates = "${pom.groupId}:${pom.artifactId}:${pom.version}"
 
-                    // Wait for the services to be fully up and running
-                    sh 'sleep 60'
+                    // Download the artifact from Nexus
+                    def nexusUrl = "${NEXUS_URL}/repository/${NEXUS_REPOSITORY}/${pom.groupId}/${pom.artifactId}/${pom.version}/${pom.artifactId}-${pom.version}.jar"
+                    sh "curl -O ${nexusUrl}"
+
+                    // Run the downloaded JAR file
+                    sh "java -jar ${pom.artifactId}-${pom.version}.jar"
                 }
             }
         }
@@ -118,10 +122,8 @@ pipeline {
             junit 'target/surefire-reports/*.xml'
             cleanWs()
 
-            // Clean up Docker containers
-            script {
-                sh 'docker-compose down'
-            }
+            // Clean up downloaded artifact
+            deleteDir()
         }
     }
 }
