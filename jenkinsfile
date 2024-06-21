@@ -104,14 +104,21 @@ pipeline {
             steps {
                 script {
                     def pom = readMavenPom file: "pom.xml"
-                    def artifactCoordinates = "${pom.groupId}:${pom.artifactId}:${pom.version}"
+                    def artifactName = "${pom.artifactId}-${pom.version}.jar"
+                    def artifactPath = "${env.WORKSPACE}/${artifactName}"
+                    def nexusUrl = "${NEXUS_URL}/repository/${NEXUS_REPOSITORY}/${pom.groupId}/${pom.artifactId}/${pom.version}/${artifactName}"
 
                     // Download the artifact from Nexus
-                    def nexusUrl = "${NEXUS_URL}/repository/${NEXUS_REPOSITORY}/${pom.groupId}/${pom.artifactId}/${pom.version}/${pom.artifactId}-${pom.version}.jar"
-                    sh "curl -O ${nexusUrl}"
+                    sh "curl -o ${artifactPath} ${nexusUrl}"
+
+                    // Check if artifact download was successful
+                    def artifactExists = fileExists(artifactPath)
+                    if (!artifactExists) {
+                        error "Failed to download artifact from Nexus"
+                    }
 
                     // Run the downloaded JAR file
-                    sh "java -jar ${pom.artifactId}-${pom.version}.jar"
+                    sh "java -jar ${artifactPath}"
                 }
             }
         }
@@ -124,6 +131,11 @@ pipeline {
 
             // Clean up downloaded artifact
             deleteDir()
+
+            // Clean up Docker containers
+            script {
+                sh 'docker-compose down'
+            }
         }
     }
 }
