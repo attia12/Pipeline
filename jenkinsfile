@@ -100,22 +100,10 @@ pipeline {
             }
         }
 
-        stage('Start Docker Containers') {
-            steps {
-                script {
-                    // Start Docker containers (MySQL and Spring Boot app)
-                    sh 'docker-compose up -d'
-                    // Give time for services to start (adjust sleep time as needed)
-                    sh 'sleep 30s'
-                }
-            }
-        }
-
         stage('Run Application') {
             steps {
                 script {
-                    def runCommand = "java -jar ${env.ARTIFACT_PATH}"
-                    sh runCommand
+                    sh 'docker-compose up -d'
                 }
             }
         }
@@ -125,6 +113,9 @@ pipeline {
         always {
             junit 'target/surefire-reports/*.xml'
             cleanWs()
+            script {
+                sh 'docker-compose down'
+            }
         }
     }
 }
