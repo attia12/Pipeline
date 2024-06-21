@@ -113,7 +113,6 @@ pipeline {
                 script {
                     sh 'docker login -u yassineattia992 -p essattia00'
                     sh 'docker push yassineattia992/eventsProject:1.0'
-                    }
                 }
             }
         }
