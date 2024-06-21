@@ -7,7 +7,7 @@ pipeline {
         NEXUS_URL = "192.168.50.10:8081"
         NEXUS_REPOSITORY = "event-repo"
         NEXUS_CREDENTIAL_ID = "nexus"
-        ARTIFACT_NAME = "eventsProject"
+        ARTIFACT_NAME = "eventsProject"  // Update with your artifact name
     }
 
     stages {
@@ -100,25 +100,24 @@ pipeline {
             }
         }
 
+        stage('Start Docker Containers') {
+            steps {
+                script {
+                    // Start Docker containers (MySQL and Spring Boot app)
+                    sh 'docker-compose up -d'
+                    // Give time for services to start (adjust sleep time as needed)
+                    sh 'sleep 30s'
+                    // Check logs for troubleshooting
+                    sh 'docker-compose logs spring-app'
+                }
+            }
+        }
+
         stage('Run Application') {
             steps {
                 script {
-                    def pom = readMavenPom file: "pom.xml"
-                    def artifactName = "${pom.artifactId}-${pom.version}.jar"
-                    def artifactPath = "${env.WORKSPACE}/${artifactName}"
-                    def nexusUrl = "${NEXUS_URL}/repository/${NEXUS_REPOSITORY}/${pom.groupId}/${pom.artifactId}/${pom.version}/${artifactName}"
-
-                    // Download the artifact from Nexus
-                    sh "curl -o ${artifactPath} ${nexusUrl}"
-
-                    // Check if artifact download was successful
-                    def artifactExists = fileExists(artifactPath)
-                    if (!artifactExists) {
-                        error "Failed to download artifact from Nexus"
-                    }
-
-                    // Run the downloaded JAR file
-                    sh "java -jar ${artifactPath}"
+                    def runCommand = "java -jar ${env.ARTIFACT_PATH}"
+                    sh runCommand
                 }
             }
         }
@@ -128,14 +127,6 @@ pipeline {
         always {
             junit 'target/surefire-reports/*.xml'
             cleanWs()
-
-            // Clean up downloaded artifact
-            deleteDir()
-
-            // Clean up Docker containers
-            script {
-                sh 'docker-compose down'
-            }
         }
     }
 }
