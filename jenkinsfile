@@ -8,8 +8,8 @@ pipeline {
         NEXUS_REPOSITORY = "event-repo"
         NEXUS_CREDENTIAL_ID = "nexus"
         ARTIFACT_NAME = "eventsProject"
-        DOCKER_HUB_CREDENTIAL_ID = "docker"
-        DOCKER_HUB_REPO = "yassineattia992/eventsproject"
+        DOCKER_HUB_CREDENTIAL_ID = "docker-hub-credentials" // Replace with your Docker Hub credentials ID
+        DOCKER_HUB_REPO = "your-dockerhub-username/eventsproject" // Replace with your Docker Hub repository
     }
 
     stages {
@@ -164,9 +164,18 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_HUB_CREDENTIAL_ID) {
-                        def app = docker.build("${DOCKER_HUB_REPO}:${env.BUILD_NUMBER}")
-                        app.push()
+                    try {
+                        echo "Starting Docker Hub authentication"
+                        docker.withRegistry('https://index.docker.io/v1/', DOCKER_HUB_CREDENTIAL_ID) {
+                            def app = docker.build("${DOCKER_HUB_REPO}:${env.BUILD_NUMBER}")
+                            echo "Docker image built successfully"
+                            app.push()
+                            echo "Docker image pushed successfully"
+                        }
+                    } catch (Exception e) {
+                        echo "Error occurred: ${e.getMessage()}"
+                        currentBuild.result = 'FAILURE'
+                        throw e
                     }
                 }
             }
