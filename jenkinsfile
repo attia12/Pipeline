@@ -56,7 +56,6 @@ pipeline {
             steps {
                 script {
                     sh 'docker-compose build'
-
                 }
             }
         }
@@ -92,7 +91,6 @@ pipeline {
                             ]
                         )
 
-                        // Set the artifactPath for later stages
                         env.ARTIFACT_PATH = artifactPath
                     } else {
                         error "*** File: ${artifactPath}, could not be found"
@@ -109,11 +107,18 @@ pipeline {
             }
         }
 
-        stage('Push image to Hub') {
+        stage('Run Prometheus') {
             steps {
                 script {
-                    sh 'docker login -u yassineattia992 -p essattia00'
-                    sh 'docker push yassineattia992/event:latest'
+                    sh 'docker run -d --name prometheus -p 9090:9090 prom/prometheus'
+                }
+            }
+        }
+
+        stage('Run Grafana') {
+            steps {
+                script {
+                    sh 'docker run -d --name grafana -p 3000:3000 grafana/grafana'
                 }
             }
         }
