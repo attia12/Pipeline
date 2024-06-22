@@ -97,57 +97,25 @@ public class EventServicesImpl implements IEventServices{
         return logisticsList;
     }
 
-//    @Scheduled(cron = "*/60 * * * * *")
-//    @Override
-//    public void calculCout() {
-//        List<Event> events = eventRepository.findByParticipants_NomAndParticipants_PrenomAndParticipants_Tache("Tounsi","Ahmed", Tache.ORGANISATEUR);
-//    // eventRepository.findAll();
-//        float somme = 0f;
-//        for(Event event:events){
-//            log.info(event.getDescription());
-//            Set<Logistics> logisticsSet = event.getLogistics();
-//            for (Logistics logistics:logisticsSet){
-//                if(logistics.isReserve())
-//                    somme+=logistics.getPrixUnit()*logistics.getQuantite();
-//            }
-//            event.setCout(somme);
-//            eventRepository.save(event);
-//            log.info("Cout de l'Event "+event.getDescription()+" est "+ somme);
-//
-//        }
-//    }
-@Scheduled(cron = "0 * * * * *") // Run every minute
-@Override
-public void calculCout() {
-    log.info("Starting calculCout method");
-
-    List<Event> events = eventRepository.findByParticipants_NomAndParticipants_PrenomAndParticipants_Tache("Tounsi", "Ahmed", Tache.ORGANISATEUR);
-    if (events.isEmpty()) {
-        log.info("No events found for the given criteria");
-        return;
-    }
-
-    float somme;
-    for (Event event : events) {
-        log.info("Processing event: " + event.getDescription());
-        Set<Logistics> logisticsSet = event.getLogistics();
-        somme = 0f;
-        for (Logistics logistics : logisticsSet) {
-            if (logistics.isReserve()) {
-                somme += logistics.getPrixUnit() * logistics.getQuantite();
+    @Scheduled(cron = "*/60 * * * * *")
+    @Override
+    public void calculCout() {
+        List<Event> events = eventRepository.findByParticipants_NomAndParticipants_PrenomAndParticipants_Tache("Tounsi","Ahmed", Tache.ORGANISATEUR);
+    // eventRepository.findAll();
+        float somme = 0f;
+        for(Event event:events){
+            log.info(event.getDescription());
+            Set<Logistics> logisticsSet = event.getLogistics();
+            for (Logistics logistics:logisticsSet){
+                if(logistics.isReserve())
+                    somme+=logistics.getPrixUnit()*logistics.getQuantite();
             }
-        }
-
-        if (event.getCout() != somme) {
             event.setCout(somme);
             eventRepository.save(event);
-            log.info("Updated cost of event " + event.getDescription() + " to " + somme);
-        } else {
-            log.info("Cost of event " + event.getDescription() + " remains unchanged");
+            log.info("Cout de l'Event "+event.getDescription()+" est "+ somme);
+
         }
     }
 
-    log.info("Completed calculCout method");
-}
 
 }

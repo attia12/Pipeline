@@ -8,6 +8,8 @@ pipeline {
         NEXUS_REPOSITORY = "event-repo"
         NEXUS_CREDENTIAL_ID = "nexus"
         ARTIFACT_NAME = "eventsProject"
+        DOCKER_HUB_CREDENTIAL_ID = "docker"
+        DOCKER_HUB_REPO = "yassineattia992/eventsproject"
     }
 
     stages {
@@ -102,7 +104,7 @@ pipeline {
         stage('Run Application') {
             steps {
                 script {
-                     sh 'docker-compose up -d'
+                    sh 'docker-compose up -d'
                 }
             }
             post {
@@ -155,6 +157,25 @@ pipeline {
                 }
                 failure {
                     echo 'Grafana stage failed'
+                }
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_HUB_CREDENTIAL_ID) {
+                        def app = docker.build("${DOCKER_HUB_REPO}:${env.BUILD_NUMBER}")
+                        app.push()
+                    }
+                }
+            }
+            post {
+                success {
+                    echo 'Docker image pushed to Docker Hub successfully'
+                }
+                failure {
+                    echo 'Docker image push to Docker Hub failed'
                 }
             }
         }
