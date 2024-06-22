@@ -8,7 +8,7 @@ pipeline {
         NEXUS_REPOSITORY = "event-repo"
         NEXUS_CREDENTIAL_ID = "nexus"
         ARTIFACT_NAME = "eventsProject"
-        DOCKER_HUB_CREDENTIAL_ID = "docker"
+        DOCKER_HUB_CREDENTIAL_ID = "dockerhub"
         DOCKER_HUB_REPO = "yassineattia992/event" // Replace with your Docker Hub repository
     }
 
