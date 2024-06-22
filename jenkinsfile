@@ -60,57 +60,24 @@ pipeline {
             }
         }
 
-        stage('Publish to Nexus') {
-            steps {
-                script {
-                    def pom = readMavenPom file: "pom.xml"
-                    def filesByGlob = findFiles(glob: "target/*.${pom.packaging}")
-
-                    if (filesByGlob.length == 0) {
-                        error "No artifacts found in target directory"
-                    }
-
-                    def artifactPath = filesByGlob[0].path
-                    def artifactExists = fileExists artifactPath
-
-                    sh "ls -l target/"
-
-                    if (artifactExists) {
-                        echo "*** File: ${artifactPath}, group: ${pom.groupId}, packaging: ${pom.packaging}, version ${pom.version}"
-
-                        nexusArtifactUploader(
-                            nexusVersion: NEXUS_VERSION,
-                            protocol: NEXUS_PROTOCOL,
-                            nexusUrl: NEXUS_URL,
-                            groupId: pom.groupId,
-                            version: pom.version,
-                            repository: NEXUS_REPOSITORY,
-                            credentialsId: NEXUS_CREDENTIAL_ID,
-                            artifacts: [
-                                [artifactId: pom.artifactId, classifier: '', file: artifactPath, type: pom.packaging]
-                            ]
-                        )
-
-                        env.ARTIFACT_PATH = artifactPath
-                    } else {
-                        error "*** File: ${artifactPath}, could not be found"
-                    }
-                }
-            }
-        }
-
-        stage('Run Application') {
-            steps {
-                script {
-                    sh 'docker-compose up -d'
-                }
-            }
-        }
-
         stage('Run Prometheus') {
             steps {
                 script {
-                    sh 'docker run -d --name prometheus -p 9090:9090 prom/prometheus'
+                    def prometheusRunning = sh(script: 'docker ps --filter "name=prometheus" --format "{{.Names}}"', returnStdout: true).trim()
+
+                    if (prometheusRunning.isEmpty()) {
+                        sh 'docker run -d --name prometheus -p 9090:9090 prom/prometheus'
+                    } else {
+                        echo 'Prometheus container is already running'
+                    }
+                }
+            }
+            post {
+                success {
+                    echo 'Prometheus stage completed successfully'
+                }
+                failure {
+                    echo 'Prometheus stage failed'
                 }
             }
         }
@@ -118,7 +85,21 @@ pipeline {
         stage('Run Grafana') {
             steps {
                 script {
-                    sh 'docker run -d --name grafana -p 3000:3000 grafana/grafana'
+                    def grafanaRunning = sh(script: 'docker ps --filter "name=grafana" --format "{{.Names}}"', returnStdout: true).trim()
+
+                    if (grafanaRunning.isEmpty()) {
+                        sh 'docker run -d --name grafana -p 3000:3000 grafana/grafana'
+                    } else {
+                        echo 'Grafana container is already running'
+                    }
+                }
+            }
+            post {
+                success {
+                    echo 'Grafana stage completed successfully'
+                }
+                failure {
+                    echo 'Grafana stage failed'
                 }
             }
         }
